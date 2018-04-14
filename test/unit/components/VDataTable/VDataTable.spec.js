@@ -26,6 +26,24 @@ test('VDataTable.vue', ({ mount, compileToFunctions }) => {
     }
   }
 
+  function dataTableNestedTestData () {
+    return {
+      propsData: {
+        value: [{ nested: { value: { id: 1, name: 'bar' } } }],
+        itemKey: 'nested.value.id',
+        headers: [
+          { text: 'ID', value: 'nested.value.id' },
+          { text: 'Name', value: 'nested.value.name' },
+        ],
+        items: [
+          { nested: { value: { id: 0, name: 'foo' } } },
+          { nested: { value: { id: 1, name: 'bar' } } },
+          { nested: { value: { id: 2, name: 'baz' } } }
+        ]
+      }
+    }
+  }
+
   function dataTableTestDataFilter () {
     return {
       propsData: {
@@ -302,6 +320,25 @@ test('VDataTable.vue', ({ mount, compileToFunctions }) => {
     wrapper.vm.value.push(wrapper.vm.items[1]);
     wrapper.vm.value.push(wrapper.vm.items[2]);
     expect(wrapper.vm.everyItem).toBe(true);
+    expect('Unable to locate target [data-app]').toHaveBeenTipped()
+  })
+
+  it('should allow selection using nested values', async () => {
+    const data = dataTableNestedTestData()
+    const wrapper = mount(VDataTable, data)
+
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.vm.selected.hasOwnProperty(1)).toBe(true)
+    expect(wrapper.vm.selected[1]).toBe(true)
+
+    wrapper.setProps({ value: [{ nested: { value: { id: 2, name: 'baz' } } }] })
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.vm.selected.hasOwnProperty(1)).toBe(false)
+    expect(wrapper.vm.selected.hasOwnProperty(2)).toBe(true)
+    expect(wrapper.vm.selected[2]).toBe(true)
+
     expect('Unable to locate target [data-app]').toHaveBeenTipped()
   })
 })
